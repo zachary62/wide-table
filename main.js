@@ -3,7 +3,7 @@ import './style.css';
 // Add some content to the HTML
 document.querySelector('#app').innerHTML = `
   <h1>Hello Vite!</h1>
-  <h4>Open the DevTools console to see the output</h4>
+  <h4>Open the DevTools console to see tsshe output</h4>
   <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
 `;
 
@@ -20,7 +20,6 @@ const MANUAL_BUNDLES = {
   },
   eh: {
     mainModule: duckdb_wasm_next,
-    // mainWorker: new URL('@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js', import.meta.url).toString(),
     mainWorker: eh_worker,
   },
 };
@@ -36,6 +35,7 @@ await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
 
 const conn = await db.connect(); // Connect to db
 
+let table = 
 // Basic query
 console.log('Basic query');
 let q = await conn.query(`SELECT count(*)::INTEGER as v
@@ -47,6 +47,7 @@ console.log(
   'Query result copy (JSON):',
   JSON.parse(JSON.stringify(q.toArray()))
 );
+console.log('Query result :', q.toArray());
 console.log('');
 
 // Prepare query
