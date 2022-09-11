@@ -1,92 +1,40 @@
-// // Add some content to the HTML
-// document.querySelector('#app').innerHTML = `
-//   <h1>Hello Vite!</h1>
-//   <h4>Open the DevTools console to see the output</h4>
-//   <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
-// `;
+import * as dk from './duckdb_wasm.js';
+import * as sTModel from './singleTableModel.js';
+import * as sTView from './singleTableView.js';
 
-// d3.select('#app').append('hello');
-
-import * as duckdb from '@duckdb/duckdb-wasm';
-import duckdb_wasm from '@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url';
-import mvp_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url';
-import duckdb_wasm_next from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
-import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
-
-const MANUAL_BUNDLES = {
-  mvp: {
-    mainModule: duckdb_wasm,
-    mainWorker: mvp_worker,
-  },
-  eh: {
-    mainModule: duckdb_wasm_next,
-    mainWorker: eh_worker,
-  },
-};
-
-// Select a bundle based on browser checks
-const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
-
-// Instantiate the asynchronus version of DuckDB-wasm
-const worker = new Worker(bundle.mainWorker);
-const logger = new duckdb.ConsoleLogger();
-const db = new duckdb.AsyncDuckDB(logger, worker);
-await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-
-// Connect to db
-const conn = await db.connect();
-
-let res = await conn.query(
-  'select * from "https://raw.githubusercontent.com/zachary62/attribution-playbook/master/data/ad_spend.csv"'
+// these codes create, read and display tables
+let database = await new dk.DuckdbWasm();
+console.log(database);
+let model = new sTModel.singleTableModel(database);
+model.createTable(
+  'auto_call',
+  'https://raw.githubusercontent.com/zachary62/wide-table/main/data/auto_recalls.csv'
 );
-console.log('Statement result (Table):', res);
+let jsTable = await model.getTable('auto_call');
+let view = new sTView.singleTableView(d3.select('#tableView'));
+view.displayTable(jsTable);
 
-let jsonTable = JSON.parse(
-  JSON.stringify(
-    res.toArray(),
-    (key, value) => (typeof value === 'bigint' ? value.toString() : value) // return everything else unchanged
-  )
-);
-console.log(
-  'Statement result copy (JSON):',
-  // Bug fix explained at: https://github.com/GoogleChromeLabs/jsbi/issues/30
-  jsonTable
-);
+// user can load specified table from location
+let tableManagerElement = d3.select('#tableManager');
+let form = tableManagerElement.append('form');
+let tableNameInput = form
+  .append('input')
+  .attr('type', 'text')
+  .attr('value', 'Table Name');
+let tableLocationInput = form
+  .append('input')
+  .attr('type', 'text')
+  .attr('value', 'Table Location');
+let AddTable = tableManagerElement.append('button');
+AddTable.html('Add Table');
+AddTable.on('click', function () {
+  changeTable(tableNameInput, tableLocationInput);
+});
 
-function getSchema(jsonTable) {
-  return Object.entries(jsonTable).map(([key, _]) => key);
+// TODO: this will create a table and update view if the query is executed successfully
+// otherwise, this will print the error message
+function changeTable(tableNameInput, tableLocationInput) {
+  let tableName = tableNameInput.property('value');
+  let tableLocation = tableLocationInput.property('value');
+  alert(`Table Name: ${tableName}, Table Location: ${tableLocation}`);
 }
-
-function getValue(jsonTable) {
-  return Object.entries(jsonTable).map(([_, value]) => value);
-}
-
-console.log('Schema:', getSchema(jsonTable));
-
-// add table to the page
-var table = d3
-  .select('#app')
-  .append('table')
-  .attr('class', 'table table-hover');
-var header = table.append('thead').append('tr');
-header
-  .selectAll('th')
-  .data(getSchema(jsonTable[0]))
-  .enter()
-  .append('th')
-  .text(function (d) {
-    return d;
-  });
-var tablebody = table.append('tbody');
-let rows = tablebody.selectAll('tr').data(jsonTable).enter().append('tr');
-
-let cells = rows
-  .selectAll('td')
-  .data(function (d) {
-    return getValue(d);
-  })
-  .enter()
-  .append('td')
-  .text(function (d) {
-    return d;
-  });

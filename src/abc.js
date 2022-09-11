@@ -2,17 +2,20 @@
 // check out https://www.taniarascia.com/javascript-mvc-todo-app/
 // this file stores the abstract class
 
-class Model {
-  constructor(database) {
-    this.database = database;
-  }
+export class Database {
+  constructor() {}
+  execute_query(sql) {}
 }
 
-class View {
+export class Model {
   constructor() {}
 }
 
-class Controller {
+export class View {
+  constructor() {}
+}
+
+export class Controller {
   constructor(model, view) {
     this.model = model;
     this.view = view;
