@@ -8,7 +8,7 @@ console.log(database);
 let model = new sTModel.singleTableModel(database);
 model.createTable(
   'auto_call',
-  'https://raw.githubusercontent.com/zachary62/wide-table/main/data/auto_recalls.csv'
+  'https://raw.githubusercontent.com/zachary62/wide-table/d1a036762d3a1965d566012ddf53a3b92e8deb5c/data/auto_recalls.csv'
 );
 let jsTable = await model.getTable('auto_call');
 let view = new sTView.singleTableView(d3.select('#tableView'));
