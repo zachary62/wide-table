@@ -45,7 +45,7 @@ function changeTable(tableNameInput, tableLocationInput) {
   let successCallback = function () {
     errorField.html('');
     model.getTable(tableName).then(function (value) {
-      view.displayTable(value);
+      view.clearAndDisplayTable(value);
     }, failureCallback);
   };
 
