@@ -30,11 +30,29 @@ AddTable.html('Add Table');
 AddTable.on('click', function () {
   changeTable(tableNameInput, tableLocationInput);
 });
+tableManagerElement.append('br');
+let errorField = tableManagerElement
+  .append('label')
+  .attr('style', 'color:red;')
+  .attr('id', 'errorField');
 
 // TODO: this will create a table and update view if the query is executed successfully
 // otherwise, this will print the error message
 function changeTable(tableNameInput, tableLocationInput) {
   let tableName = tableNameInput.property('value');
   let tableLocation = tableLocationInput.property('value');
-  alert(`Table Name: ${tableName}, Table Location: ${tableLocation}`);
+
+  let successCallback = function () {
+    errorField.html('');
+    model.getTable(tableName).then(function (value) {
+      view.displayTable(value);
+    }, failureCallback);
+  };
+
+  let failureCallback = function (reason) {
+    errorField.html(`Operation failed with reason: ${reason}`);
+  };
+  model
+    .createTable(tableName, tableLocation)
+    .then(successCallback, failureCallback);
 }
