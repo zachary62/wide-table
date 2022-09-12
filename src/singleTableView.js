@@ -8,8 +8,15 @@ export class singleTableView extends abc.View {
     this.element = element;
   }
 
+  // removes all inner elements and contents of a HTML tag.
+  // Note: this does not remove attributes.
+  clear() {  
+    this.element.html(null)
+  }
+
   // receive data as jsonTable as input, and displays the table
   // below codes use d3. Check out http://bl.ocks.org/yan2014/c9dd6919658991d33b87
+  // Note: This function appends new tables, but doesn't clear existing tables.
   displayTable(jsTable) {
     let table = this.element.append('table').attr('class', 'table table-hover');
 
@@ -40,5 +47,10 @@ export class singleTableView extends abc.View {
       .text(function (d) {
         return d;
       });
+  }
+
+  clearAndDisplayTable(jsTable) {
+    this.clear();
+    this.displayTable(jsTable);
   }
 }
