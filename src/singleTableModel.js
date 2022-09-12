@@ -14,7 +14,7 @@ export class singleTableModel extends abc.Model {
 
   async createTable(name, location) {
     await this.database.execute_query(
-      `create or replace table ${name} as select * from "${location}"`
+      `create or replace table ${name} as select * from read_csv_auto('${location}', AUTO_DETECT = True)`
     );
   }
 

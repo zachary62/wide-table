@@ -20,11 +20,11 @@ let form = tableManagerElement.append('form');
 let tableNameInput = form
   .append('input')
   .attr('type', 'text')
-  .attr('value', 'Table Name');
+  .attr('value', 'TableName');
 let tableLocationInput = form
   .append('input')
   .attr('type', 'text')
-  .attr('value', 'Table Location');
+  .attr('value', 'TableLocation');
 let AddTable = tableManagerElement.append('button');
 AddTable.html('Add Table');
 AddTable.on('click', function () {
@@ -43,7 +43,7 @@ function changeTable(tableNameInput, tableLocationInput) {
   let tableLocation = tableLocationInput.property('value');
 
   let successCallback = function () {
-    errorField.html('');
+    errorField.html('success');
     model.getTable(tableName).then(function (value) {
       view.clearAndDisplayTable(value);
     }, failureCallback);
