@@ -27,9 +27,9 @@ export class multiTableModel extends abc.Model {
     );
   }
 
-  async getJoinedTable(t1, a1, t2, a2, joinType = '') {
+  async getJoinedTables(t1, a1, t2, a2, joinType = '') {
     return await this.database.execute_query(
-      `select * from ${t1} join ${t2} on ${a1} == ${a2} limit 10;`
+      `select * from "${t1}" t1 join "${t2}" t2 on t1."${a1}" = t2."${a2}" limit 100;`
     )
   }
 
@@ -37,7 +37,6 @@ export class multiTableModel extends abc.Model {
     let data = await this.database.execute_query(
       `select column_name from information_schema.columns where table_name = '${table}'`
     );
-    console.log(data)
     return data;
 
   }

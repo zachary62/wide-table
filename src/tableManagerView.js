@@ -81,27 +81,16 @@ export class tableManagerView extends abc.View {
     })
   }
 
-  displayAttributes(attributeSet1, attributeSet2) {
-    if (attributeSet1 != undefined) {
-
-      this.attrs1.html(null);
-      attributeSet1.forEach( (attr) => {
-        this.attrs1
+  displayAttributes(id, attributeSet) {
+        let selector = d3.select('#' + id);
+        console.log(selector);
+        selector.html(null);
+        attributeSet.forEach( (attr) => {
+        selector
         .append("option")
         .text(attr)
         .property("value", attr);
       });
-    }
-
-    if (attributeSet2 != undefined) {
-      this.attrs2.html(null);
-      attributeSet2.forEach( (attr) => {
-        this.attrs2
-        .append("option")
-        .text(attr)
-        .property("value", attr);
-      });
-    }  
   }
 
   bindAddTableButton(handler) {
@@ -131,19 +120,15 @@ export class tableManagerView extends abc.View {
     })
   }
   // TODO: reduce to one generic handler
-  bindSelectAttrs1(handler) {
+  bindSelectAttrs(handler) {
     this.dropdown1.on('change', () =>{
         let table = this.dropdown1.property('value');
-        handler(table);
+        handler(this.attrs1.property('id'), table);
     });
-
-  }
-  bindSelectAttrs2(handler) {
-
     this.dropdown2.on('change', () =>{
       let table = this.dropdown2.property('value');
-      handler(table);
-    });
+      handler(this.attrs2.property('id'), table);
+  });
   }
 
     

@@ -1,9 +1,7 @@
 import * as abc from './abc.js';
 
 
-let failureCallback = (reason) => {
-  this.tMView.displayError(reason);
-};
+
 
 export class tableManagerController extends abc.Controller {
   constructor(model, tMView, sTView) {
@@ -15,10 +13,12 @@ export class tableManagerController extends abc.Controller {
     this.tMView.bindAddTableButton(this.addTable);
     this.tMView.bindShowSchemaAndSample(this.showSchemaAndSamples);
     this.tMView.bindJoin(this.joinTables);
-    this.tMView.bindSelectAttrs1(this.getAttrs);
-    this.tMView.bindSelectAttrs2(this.getAttrs);
+    this.tMView.bindSelectAttrs(this.getAttrs);
 
   }
+  failureCallback = (reason) => {
+    this.tMView.displayError(reason);
+  };
   
 
   addTable = (tableName, tableLocation) => {
@@ -28,11 +28,11 @@ export class tableManagerController extends abc.Controller {
       this.model.getTableData(tableName).then( (value) => {
         this.sTView.clearAndDisplayTable(value);
         this.tMView.displayTableSelections(this.model.getTableList())
-      }, failureCallback);
+      }, this.failureCallback);
     };
     this.model
       .createTable(tableName, tableLocation)
-      .then(successCallback, failureCallback);
+      .then(successCallback, this.failureCallback);
   };
 
   showSchemaAndSamples = (table1, table2) => {
@@ -44,21 +44,21 @@ export class tableManagerController extends abc.Controller {
 
       this.sTView.displayTable(resp.schema2)
       this.sTView.displayTable(resp.sample2)
-    }, failureCallback);
+    }, this.failureCallback);
   };
 
-  getAttrs = (table) => {
-    this.model.getAttributes(table).then( (data) => {
+  getAttrs = (id, table) => {
+    this.model.getAttributes(table).then((data) => {
       console.log(data.data)
       let columns = data.data.map(e=> e.column_name);
-      this.tMView.displayAttributes(columns);
+      this.tMView.displayAttributes(id, columns);
     })
   }
   joinTables = (t1, a1, t2, a2) => {
 
-    this.model.joinTables(t1, a1, t2, a2).then( (data) => {
+    this.model.getJoinedTables(t1, a1, t2, a2).then( (data) => {
         this.sTView.clearAndDisplayTable(data);
-    }, failureCallback);
+    }, this.failureCallback);
   }
 
   getSchemaAndSamples = async (table1, table2) => {
