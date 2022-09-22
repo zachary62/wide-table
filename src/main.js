@@ -6,13 +6,13 @@ import * as sTView from './singleTableView.js';
 let database = await new dk.DuckdbWasm();
 console.log(database);
 let model = new sTModel.singleTableModel(database);
-model.createTable(
-  'auto_call',
-  'https://raw.githubusercontent.com/zachary62/wide-table/d1a036762d3a1965d566012ddf53a3b92e8deb5c/data/auto_recalls.csv'
-);
-let jsTable = await model.getTable('auto_call');
+// model.createTable(
+//   'auto_call',
+//   'https://raw.githubusercontent.com/zachary62/wide-table/d1a036762d3a1965d566012ddf53a3b92e8deb5c/data/auto_recalls.csv'
+// );
+// let jsTable = await model.getTable('auto_call');
 let view = new sTView.singleTableView(d3.select('#tableView'));
-view.displayTable(jsTable);
+// view.displayTable(jsTable);
 
 // user can load specified table from location
 let tableManagerElement = d3.select('#tableManager');
