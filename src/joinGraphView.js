@@ -28,7 +28,7 @@ this.svg = this.graphViewElement
       var link = this.svg.append("g")
       .attr("class", "links")
     .selectAll("line")
-    .data(data.links)
+    .data(Array.from(data.links))
     .enter().append("line")
     .style("stroke", "#aaa")
       .attr("stroke-width", "8px");
@@ -37,7 +37,7 @@ this.svg = this.graphViewElement
   var node = this.svg.append("g")
       .attr("class", "nodes")
     .selectAll("g")
-    .data(data.nodes)
+    .data(Array.from(data.nodes))
     .enter().append("g")
 
   var circles = node.append("circle")
@@ -55,16 +55,16 @@ node.append("title")
 
 
   // Let's list the force we wanna apply on the network
-  const simulation = d3.forceSimulation(data.nodes)                 // Force algorithm is applied to data.nodes
+  const simulation = d3.forceSimulation(Array.from(data.nodes))                 // Force algorithm is applied to data.nodes
       .force("link", d3.forceLink()                               // This force provides links between nodes
             .id(function(d) { return d.id; })                     // This provide  the id of a node
-            .links(data.links)                                    // and this the list of links
+            .links(Array.from(data.links))                                    // and this the list of links
       )
       .force("charge", d3.forceManyBody().strength(-400))         // This adds repulsion between nodes. Play with the -400 for the repulsion strength
       .force("center", d3.forceCenter(this.width / 2, this.height / 2))     // This force attracts nodes to the center of the svg area
       .on("end", ticked);
     simulation.force("link")
-      .links(data.links);
+      .links(Array.from(data.links));
 
 
   // This function is run at each iteration of the force algorithm, updating the nodes position.

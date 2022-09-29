@@ -26,47 +26,51 @@ export class tableManagerController extends abc.Controller {
 
     // bind methods
     this.tMView.bindAddTableButton(this.addTable);
-    this.tMView.bindShowSchemaAndSample(this.showSchemaAndSamples);
+    this.tMView.bindShowSchemaAndSample(this.showSchemaAndSample);
     this.tMView.bindJoin(this.joinTables);
-    // this.tMView.bindSelectAttrs(this.getAttrs);
+    this.tMView.bindSelectAttrs(this.getAttrs);
     this.tMView.bindAddJoinCondition(this.addJoinCondition);
-
     this.joinConditions = []
+    // this.tMView.bindJoinConditionChange(this.refreshJoinConditions); 
+
     this.joinGraph = {
-      "nodes": [ 
-        {"id": 1, "name": "A"},
-        {"id": 2,"name": "B"}
-      ],
-      "links": [ {
-        "source": 1,
-        "target": 2
-      }]
+      "nodes": new Set(),
+      "links": new Set()
     }
       this.gView.displayGraph(this.joinGraph);
 
   }
 
-  addJoinCondition = (data) => {
+  refreshJoinConditions = (data) => {
     console.log(data)
-    // this.tMView.generateJoinInput(this.joinConditions.length+1);
+    for (let i=0;i<data.length;i++) {
+      this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2));
+      if (this.isValidJoinCondition(data[i])) {
+          this.joinGraph.nodes.add({"id": data[i].table1, "name": data[i].table1});
+          this.joinGraph.nodes.add({"id": data[i].table2, "name": data[i].table2});
+          this.joinGraph.links.add({"source": data[i].table1, "target": data[i].table2});
+      }
+    }
+    console.log(this.joinGraph)
+    this.gView.displayGraph(this.joinGraph);
+    this.tMView.bindSelectAttrs(this.getAttrs);
+
+  }
+
+  addJoinCondition = (data) => {
 
     //validate
     for (let i=0;i<data.length;i++) {
       this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2));
       if (this.isValidJoinCondition(data[i])) {
-          joinGraph.nodes.push({"id": table1, "name": table1});
-          joinGraph.nodes.push({"id": table2, "name": table2});
-          joinGraph.links.push({"source": table1, "target": table2});
-          joinGraph.links.push({"source": table2, "target": table1});
+          this.joinGraph.nodes.add({"id": data[i].table1, "name": data[i].table1});
+          this.joinGraph.nodes.add({"id": data[i].table2, "name": data[i].table2});
+          this.joinGraph.links.add({"source": data[i].table1, "target": data[i].table2});
+          // this.joinGraph.links.add({"source": data[i].table2, "target": data[i].table1});
       }
     }
     this.gView.displayGraph(this.joinGraph);
-    // add to state in this class
-    // join with sample of 10
-    // calculate cardinality
     // add cardinality data
-    // update view for displaying join result
-    // update view with latest view of join conditions
     let tableAttributeMapping = new Map();
     this.model.getTableList().forEach((table) => {
       this.model.getAttributes(table).then((value) => {
@@ -74,9 +78,11 @@ export class tableManagerController extends abc.Controller {
         tableAttributeMapping.set(table, columns);
       }, this.failureCallback).then(() => {
         this.tMView.displayJoinConditions(this.joinConditions, tableAttributeMapping);
+            //TODO: Update bindings for join conditions
+        this.tMView.bindSelectAttrs(this.getAttrs);
       })
     });
-    
+
   }
 
   isValidJoinCondition = (joinCondition) => {
@@ -106,6 +112,15 @@ export class tableManagerController extends abc.Controller {
       .then(successCallback, this.failureCallback);
   };
 
+  showSchemaAndSample = (table) => {
+
+    this.getSchemaAndSample(table).then((resp) => {
+      this.sTView.clear();
+      this.sTView.displayTable(resp.schema1)
+      this.sTView.displayTable(resp.sample1)
+    }, this.failureCallback);
+  };
+
   showSchemaAndSamples = (table1, table2) => {
 
     this.getSchemaAndSamples(table1, table2).then((resp) => {
@@ -120,7 +135,6 @@ export class tableManagerController extends abc.Controller {
 
   getAttrs = (id, table) => {
     this.model.getAttributes(table).then((data) => {
-      console.log(data.data)
       let columns = data.data.map(e=> e.column_name);
       this.tMView.displayAttributes(id, columns);
     })
@@ -145,6 +159,15 @@ export class tableManagerController extends abc.Controller {
       "schema2": schema2,
       "sample1": sample1,
       "sample2": sample2,
+    };
+  };
+  getSchemaAndSample = async (table) => {
+    let schema1 = await this.model.getTableSchema(table);
+    let sample1 = await this.model.getTableData(table, 10);
+
+    return {
+      "schema1": schema1,
+      "sample1": sample1,
     };
   };
 }

@@ -72,12 +72,12 @@ export class tableManagerView extends abc.View {
       .append('div')
       .attr('id', 'join_container');
     for (let i = 0; i < 1; i++) {
-      this.generateJoinInput(i);
+      // this.generateJoinInput(i);
     }
 
     this.joinContainer.append();
 
-    this.tableManagerElement.append('label').html('Join Query : ');
+    // this.tableManagerElement.append('label').html('Join Query : ');
 
     // this.joinQueryInput = this.tableManagerElement
     //   .append('input')
@@ -85,9 +85,9 @@ export class tableManagerView extends abc.View {
     //   .attr('id', 'joinQueryInput')
     //   .attr('value', '');
     this.tableManagerElement.append('br');
-    this.join = this.tableManagerElement.append('button');
-    this.join.html('Join');
-    this.tableManagerElement.append('br');
+    // this.join = this.tableManagerElement.append('button');
+    // this.join.html('Join');
+    // this.tableManagerElement.append('br');
   }
 
   displayError(errMsg) {
@@ -102,8 +102,6 @@ export class tableManagerView extends abc.View {
   displayTableSelections(tables) {
     this.tableListBox.html(null);
     this.tableListBox.attr('Size', tables.length);
-    // this.dropdown1.html(null);
-    // this.dropdown2.html(null);
 
 
     // TODO: do incremental update instead
@@ -122,13 +120,6 @@ export class tableManagerView extends abc.View {
     tables.forEach((table) => {
       this.tableListBox.append('option').text(table).property('value', table);
     });
-    // tables.forEach((table) => {
-    //   this.dropdown1.append('option').text(table).property('value', table);
-    // });
-
-    // tables.forEach((table) => {
-    //   this.dropdown2.append('option').text(table).property('value', table);
-    // });
   }
 
   displayJoinConditions(joinConditions, tableAttrMapping) {
@@ -165,18 +156,10 @@ export class tableManagerView extends abc.View {
       console.log(table)
       this.tableListBox.append('option').text(table).property('value', table);
     });
-    // tables.forEach((table) => {
-    //   this.dropdown1.append('option').text(table).property('value', table);
-    // });
-
-    // tables.forEach((table) => {
-    //   this.dropdown2.append('option').text(table).property('value', table);
-    // });
   }
 
   displayAttributes(id, attributeSet) {
-    let selector = d3.select('#' + id);
-    console.log(selector);
+    let selector = d3.select(id);
     selector.html(null);
     attributeSet.forEach((attr) => {
       selector
@@ -196,19 +179,16 @@ export class tableManagerView extends abc.View {
 
   bindShowSchemaAndSample(handler) {
     this.showSample.on('click', () => {
-      let t1 = this.dropdown1.property('value');
-      let t2 = this.dropdown2.property('value');
-      handler(t1, t2);
+      let table = this.tableListBox.property('value');
+      handler(table);
     });
   }
 
   bindAddJoinCondition(handler) {
     this.addJoin.on('click', () => {
-      console.log(this.joinContainer.selectAll('div').size())
       this.generateJoinInput(this.joinContainer.selectAll('div').size());
       let joinConditions = []
       this.joinContainer.selectAll('div').each(function(row, i) {
-        console.log(d3.select(this))
         let table1 = d3.select(this).select('#dropdown_t1_' + i).property('value');
         let table2 = d3.select(this).select('#dropdown_t2_' + i).property('value');
         let attr1 = d3.select(this).select('#attrs_t1_' + i).property('value');
@@ -225,7 +205,11 @@ export class tableManagerView extends abc.View {
       div.append('label').html('SELECT * FROM ');
       div.append('label').html('&nbsp;');
 
-      div.append('select').attr('id', 'dropdown_t1_' + i);
+      div.append('select').attr('id', 'dropdown_t1_' + i)
+      .on('selectionchange', (d) => {
+        let table1 = d3.select('#dropdown_t1_' + i).property('value');
+        console.log(d)
+      });
       div.append('label').html('&nbsp;');
 
       div.append('label').html(' JOIN ');
@@ -244,32 +228,63 @@ export class tableManagerView extends abc.View {
       div.append('label').html('&nbsp;');
       div.append('select').attr('id', 'attrs_t2_' + i);
       div.append('label').html('&nbsp;');
-      div.append('button').attr('id', 'delete_join' + i).html('X')
-      .on('change', (d) => {
-        console.log(d);
+      div.append('button').attr('id', 'delete_join_' + i).html('X')
+      .on('click', (d) => {
+        d3.select('#join_row_' + i).remove();
       });
       div.append('br');
   }
 
   //only supporting single key join
   bindJoin(handler) {
-    this.join.on('click', () => {
-      let a1 = this.attrs1.property('value');
-      let a2 = this.attrs2.property('value');
-      let t1 = this.dropdown1.property('value');
-      let t2 = this.dropdown2.property('value');
-      handler(t1, a1, t2, a2);
-    });
+    // this.join.on('click', () => {
+      // let a1 = this.attrs1.property('value');
+      // let a2 = this.attrs2.property('value');
+      // let t1 = this.dropdown1.property('value');
+      // let t2 = this.dropdown2.property('value');
+      // handler(t1, a1, t2, a2);
+    // });
   }
   // TODO: reduce to one generic handler
-  // bindSelectAttrs(handler) {
-  //   this.dropdown1.on('change', () => {
-  //     let table = this.dropdown1.property('value');
-  //     handler(this.attrs1.property('id'), table);
-  //   });
-  //   this.dropdown2.on('change', () => {
-  //     let table = this.dropdown2.property('value');
-  //     handler(this.attrs2.property('id'), table);
-  //   });
-  // }
+  bindSelectAttrs(handler) {
+
+    let n = this.joinContainer.selectAll('div').size()
+
+    for (let i=0;i<n;i++) {
+      d3.select('#dropdown_t1_' + i).on('change', () => {
+        handler('#attrs_t1_' + i.toString(), d3.select('#dropdown_t1_' + i).property('value'));
+      })
+      d3.select('#dropdown_t2_' + i).on('change', () => {
+        handler('#attrs_t2_' + i.toString(), d3.select('#dropdown_t2_' + i).property('value'));
+      })
+    }
+  }
+
+  bindJoinConditionChange(handler) {
+    let n = this.joinContainer.selectAll('div').size()
+    let joinConditions = []
+    this.joinContainer.selectAll('div').each(function(row, i) {
+      let table1 = d3.select(this).select('#dropdown_t1_' + i).property('value');
+      let table2 = d3.select(this).select('#dropdown_t2_' + i).property('value');
+      let attr1 = d3.select(this).select('#attrs_t1_' + i).property('value');
+      let attr2 = d3.select(this).select('#attrs_t2_' + i).property('value');
+      
+      joinConditions.push({'table1':table1, 'table2': table2, 'attr1': attr1, 'attr2': attr2});
+    })
+    console.log(joinConditions)
+    for (let i=0;i<n;i++) {
+      d3.select('#dropdown_t1_' + i).on('change', () => {
+        handler(joinConditions);
+      })
+      d3.select('#dropdown_t2_' + i).on('change', () => {
+        handler(joinConditions);
+      })
+      d3.select('#attrs_t1_' + i).on('change', () => {
+        handler(joinConditions);
+      })
+      d3.select('#attrs_t2_' + i).on('change', () => {
+        handler(joinConditions);
+      })
+    }
+  }
 }
