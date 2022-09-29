@@ -6,7 +6,7 @@ export class multiTableModel extends abc.Model {
     super();
     this.database = database;
     this.sample = 100;
-    this.tables = []
+    this.tables = new Set();
   }
 
   setSample(sample) {
@@ -17,7 +17,7 @@ export class multiTableModel extends abc.Model {
     let data = await this.database.execute_query(
       `create or replace table ${name} as select * from read_csv_auto('${location}', AUTO_DETECT = True)`
     );
-    this.tables.push(name);
+    this.tables.add(name);
     return data
   }
 
