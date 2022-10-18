@@ -29,8 +29,11 @@ export class tableManagerController extends abc.Controller {
     this.tMView.bindShowSchemaAndSample(this.showSchemaAndSample);
     this.tMView.bindJoin(this.joinTables);
     this.tMView.bindSelectAttrs(this.getAttrs);
+    this.tMView.bindJoinCondition(this.updateJoinCondition);
     this.tMView.bindAddJoinCondition(this.addJoinCondition);
-    this.joinConditions = []
+    this.tMView.bindGenerateGraph(this.generateGraph);
+    this.tMView.bindDeleteJoin(this.deleteJoin);
+    this.joinConditions = [];
     // this.tMView.bindJoinConditionChange(this.refreshJoinConditions); 
 
     this.joinGraph = {
@@ -60,8 +63,46 @@ export class tableManagerController extends abc.Controller {
   addJoinCondition = (data) => {
 
     //validate
+    // this.joinConditions = [];
+    // for (let i=0;i<data.length;i++) {
+    //   this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2));
+    // }
+    //this.gView.displayGraph(this.joinGraph);
+    // TODO: add cardinality data
+    let tableAttributeMapping = new Map();
+    this.model.getTableList().forEach((table) => {
+      this.model.getAttributes(table).then((value) => {
+        let columns = value.data.map(e=> e.column_name);
+        tableAttributeMapping.set(table, columns);
+      }, this.failureCallback).then(() => {
+        this.tMView.bindJoinCondition(this.updateJoinCondition);
+        this.tMView.bindSelectAttrs(this.getAttrs);
+        this.tMView.displayJoinConditions(this.joinConditions, tableAttributeMapping);
+      })
+    });
+
+  }
+
+  updateJoinCondition = (idx, data) => {
+    console.log("update function called");
+    this.joinConditions[idx] = new JoinCondition(data.table1, data.table2, data.attr1, data.attr2);
+    console.log("join conditions after update");
+    console.log(this.joinConditions);
+  }
+
+  deleteJoin = (idx, id) => {
+    console.log("delete join function called");
+    this.joinConditions.splice(idx, 1);
+    this.tMView.removeElement(id);
+  }
+
+  generateGraph = (data) => {
+    console.log("displaying graph");
+    console.log(this.joinGraph);
+    //validate
+    this.joinConditions = [];
     for (let i=0;i<data.length;i++) {
-      this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2));
+      this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2)); 
       if (this.isValidJoinCondition(data[i])) {
           this.joinGraph.nodes.add({"id": data[i].table1, "name": data[i].table1});
           this.joinGraph.nodes.add({"id": data[i].table2, "name": data[i].table2});
@@ -116,7 +157,7 @@ export class tableManagerController extends abc.Controller {
 
     this.getSchemaAndSample(table).then((resp) => {
       this.sTView.clear();
-      this.sTView.displayTable(resp.schema1)
+      // this.sTView.displayTable(resp.schema1)
       this.sTView.displayTable(resp.sample1)
     }, this.failureCallback);
   };
@@ -133,10 +174,11 @@ export class tableManagerController extends abc.Controller {
     }, this.failureCallback);
   };
 
-  getAttrs = (id, table) => {
+  getAttrs = (idx, id, table, currentAttr) => {
+    this.tMView.dispatchChangeEventToJoinCondition(idx);
     this.model.getAttributes(table).then((data) => {
       let columns = data.data.map(e=> e.column_name);
-      this.tMView.displayAttributes(id, columns);
+      this.tMView.displayAttributes(id, columns, currentAttr);
     })
   }
 
