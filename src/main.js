@@ -30,8 +30,8 @@ let tableManagerElement = d3.select('#tableManager');
 let tableManagerView = new tMView.tableManagerView(tableManagerElement);
 let multiTableModel = new mTModel.multiTableModel(database);
 let tableManagerController = new tMController.tableManagerController(multiTableModel, tableManagerView, singleTableView, graphView);
-// tableManagerController.addTable("gold", 'https://raw.githubusercontent.com/zachary62/wide-table-data/main/lol/gold.csv');
-// tableManagerController.addTable("bans", 'https://raw.githubusercontent.com/zachary62/wide-table-data/main/lol/bans.csv');
+tableManagerController.addTable("gold", 'https://raw.githubusercontent.com/zachary62/wide-table-data/main/lol/gold.csv');
+tableManagerController.addTable("bans", 'https://raw.githubusercontent.com/zachary62/wide-table-data/main/lol/bans.csv');
 tableManagerController.addTable("kills", 'https://raw.githubusercontent.com/zachary62/wide-table-data/main/lol/kills.csv');
 tableManagerController.addTable("monsters", 'https://raw.githubusercontent.com/zachary62/wide-table-data/main/lol/monsters.csv');
 

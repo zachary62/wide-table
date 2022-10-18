@@ -27,7 +27,7 @@ export class tableManagerController extends abc.Controller {
     // bind methods
     this.tMView.bindAddTableButton(this.addTable);
     this.tMView.bindShowSchemaAndSample(this.showSchemaAndSample);
-    this.tMView.bindJoin(this.joinTables);
+    // this.tMView.bindJoin(this.joinTables);
     this.tMView.bindSelectAttrs(this.getAttrs);
     this.tMView.bindJoinCondition(this.updateJoinCondition);
     this.tMView.bindAddJoinCondition(this.addJoinCondition);
@@ -37,8 +37,8 @@ export class tableManagerController extends abc.Controller {
     // this.tMView.bindJoinConditionChange(this.refreshJoinConditions); 
 
     this.joinGraph = {
-      "nodes": new Set(),
-      "links": new Set()
+      "nodes": [],
+      "links": []
     }
       this.gView.displayGraph(this.joinGraph);
 
@@ -62,12 +62,9 @@ export class tableManagerController extends abc.Controller {
 
   addJoinCondition = (data) => {
 
-    //validate
-    // this.joinConditions = [];
-    // for (let i=0;i<data.length;i++) {
-    //   this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2));
-    // }
-    //this.gView.displayGraph(this.joinGraph);
+
+    this.joinConditions.push(new JoinCondition(data.table1, data.table2, data.attr1, data.attr2));
+
     // TODO: add cardinality data
     let tableAttributeMapping = new Map();
     this.model.getTableList().forEach((table) => {
@@ -77,6 +74,7 @@ export class tableManagerController extends abc.Controller {
       }, this.failureCallback).then(() => {
         this.tMView.bindJoinCondition(this.updateJoinCondition);
         this.tMView.bindSelectAttrs(this.getAttrs);
+        this.tMView.bindDeleteJoin(this.deleteJoin);
         this.tMView.displayJoinConditions(this.joinConditions, tableAttributeMapping);
       })
     });
@@ -84,46 +82,51 @@ export class tableManagerController extends abc.Controller {
   }
 
   updateJoinCondition = (idx, data) => {
-    console.log("update function called");
     this.joinConditions[idx] = new JoinCondition(data.table1, data.table2, data.attr1, data.attr2);
-    console.log("join conditions after update");
-    console.log(this.joinConditions);
   }
 
-  deleteJoin = (idx, id) => {
-    console.log("delete join function called");
+  deleteJoin = (idx, rowId) => {
     this.joinConditions.splice(idx, 1);
-    this.tMView.removeElement(id);
-  }
-
-  generateGraph = (data) => {
-    console.log("displaying graph");
-    console.log(this.joinGraph);
-    //validate
-    this.joinConditions = [];
-    for (let i=0;i<data.length;i++) {
-      this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2)); 
-      if (this.isValidJoinCondition(data[i])) {
-          this.joinGraph.nodes.add({"id": data[i].table1, "name": data[i].table1});
-          this.joinGraph.nodes.add({"id": data[i].table2, "name": data[i].table2});
-          this.joinGraph.links.add({"source": data[i].table1, "target": data[i].table2});
-          // this.joinGraph.links.add({"source": data[i].table2, "target": data[i].table1});
-      }
-    }
-    this.gView.displayGraph(this.joinGraph);
-    // add cardinality data
+    this.tMView.removeElement(rowId);
+    
+    
+    // refresh
     let tableAttributeMapping = new Map();
     this.model.getTableList().forEach((table) => {
       this.model.getAttributes(table).then((value) => {
         let columns = value.data.map(e=> e.column_name);
         tableAttributeMapping.set(table, columns);
       }, this.failureCallback).then(() => {
-        this.tMView.displayJoinConditions(this.joinConditions, tableAttributeMapping);
-            //TODO: Update bindings for join conditions
+
+        //regenerate join input
+        this.tMView.generateJoinInputs(this.joinConditions.length);
+        this.tMView.bindJoinCondition(this.updateJoinCondition);
         this.tMView.bindSelectAttrs(this.getAttrs);
+        this.tMView.bindDeleteJoin(this.deleteJoin);
+        this.tMView.displayJoinConditions(this.joinConditions, tableAttributeMapping);
       })
     });
+  }
 
+  generateGraph = (data) => {
+    //validate
+    this.joinGraph.nodes = [];
+    this.joinGraph.links = [];
+    for (let i=0;i<data.length;i++) { 
+      if (this.isValidJoinCondition(data[i])) {
+          if (this.joinGraph.nodes.find(e => e.id === data[i].table1) === undefined) {
+            this.joinGraph.nodes.push({"id": data[i].table1, "name": data[i].table1});
+          }
+          if (this.joinGraph.nodes.find(e => e.id === data[i].table2) ===undefined) {
+            this.joinGraph.nodes.push({"id": data[i].table2, "name": data[i].table2});
+          }
+          if (this.joinGraph.links.find(e => e.source === data[i].table1 && e.target === data[i].table2) ===undefined) {
+            this.joinGraph.links.push({"source": data[i].table1, "target": data[i].table2});
+          }
+      }
+    }
+    this.gView.clearGraph();
+    this.gView.displayGraph(this.joinGraph);
   }
 
   isValidJoinCondition = (joinCondition) => {
@@ -137,7 +140,6 @@ export class tableManagerController extends abc.Controller {
   failureCallback = (reason) => {
     this.tMView.displayError(reason);
   };
-  
 
   addTable = (tableName, tableLocation) => {
 

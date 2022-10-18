@@ -38,25 +38,6 @@ export class tableManagerView extends abc.View {
       .attr('style', 'color:red;')
       .attr('id', 'errorField');
     this.tableManagerElement.append('br');
-    // this.tableManagerElement.append('label').html('Table 1: ');
-    // this.dropdown1 = this.tableManagerElement
-    //   .append('select')
-    //   .attr('id', 'dropwdown1');
-    // this.tableManagerElement.append('label').html(', attributes: ');
-    // this.attrs1 = this.tableManagerElement
-    //   .append('select')
-    //   .attr('id', 'attrs1');
-    // this.tableManagerElement.append('br');
-
-    // this.tableManagerElement.append('label').html('Table 2: ');
-    // this.dropdown2 = this.tableManagerElement
-    //   .append('select')
-    //   .attr('id', 'dropwdown2');
-    // this.tableManagerElement.append('label').html(', attributes: ');
-    // this.attrs2 = this.tableManagerElement
-    //   .append('select')
-    //   .attr('id', 'attrs2');
-    // this.tableManagerElement.append('br');
 
     // Show sample button
     this.showSample = this.tableManagerElement.append('button');
@@ -81,6 +62,122 @@ export class tableManagerView extends abc.View {
     this.tableManagerElement.append('br');
   }
 
+  // ALL BINDS
+
+  bindAddTableButton(handler) {
+    this.addTable.on('click', () => {
+      let tableName = d3.select('#tableName').property('value');
+      let tableLocation = d3.select('#tableLocation').property('value');
+      handler(tableName, tableLocation);
+    });
+  }
+
+  bindShowSchemaAndSample(handler) {
+    this.showSample.on('click', () => {
+      let table = this.tableListBox.property('value');
+      handler(table);
+    });
+  }
+
+  bindAddJoinCondition(handler) {
+    this.addJoin.on('click', () => {
+      this.generateJoinInput(this.joinContainer.selectAll('div').size());
+      let joinConditions = []
+      this.joinContainer.selectAll('div').each(function(row, i) {
+        let table1 = d3.select(this).select('#dropdown_t1_' + i).property('value');
+        let table2 = d3.select(this).select('#dropdown_t2_' + i).property('value');
+        let attr1 = d3.select(this).select('#attrs_t1_' + i).property('value');
+        let attr2 = d3.select(this).select('#attrs_t2_' + i).property('value');
+        
+        joinConditions.push({'table1':table1, 'table2': table2, 'attr1': attr1, 'attr2': attr2});
+      })
+      handler(joinConditions.at(-1));
+    })
+  }
+
+  bindGenerateGraph(handler) {
+    this.generateGraph.on('click', () => {
+      let joinConditions = []
+      this.joinContainer.selectAll('div').each(function(row, i) {
+        let table1 = d3.select(this).select('#dropdown_t1_' + i).property('value');
+        let table2 = d3.select(this).select('#dropdown_t2_' + i).property('value');
+        let attr1 = d3.select(this).select('#attrs_t1_' + i).property('value');
+        let attr2 = d3.select(this).select('#attrs_t2_' + i).property('value');
+        
+        joinConditions.push({'table1':table1, 'table2': table2, 'attr1': attr1, 'attr2': attr2});
+      })
+      handler(joinConditions);
+    })
+  }
+
+  bindDeleteJoin(deleteJoinHandler) {
+    let n = this.joinContainer.selectAll('div').size()
+    for (let i=0;i<n;i++) {
+      d3.select('#delete_join_' + i).on('click', () => {
+        deleteJoinHandler(i, ('#join_row_' + i.toString()));
+      });
+    }
+  }
+
+
+  bindSelectAttrs(getAttrsHandler) {
+    let n = this.joinContainer.selectAll('div').size()
+    for (let i=0;i<n;i++) {
+
+      d3.select('#dropdown_t1_' + i).on('change.attr', () => {
+        let table1 = d3.select('#dropdown_t1_' + i).property('value');
+        let attr1 = d3.select('#attrs_t1_' + i).property('value');
+        getAttrsHandler(i, '#attrs_t1_' + i.toString(), table1, attr1);
+      });
+      d3.select('#dropdown_t2_' + i).on('change.attr', () => {
+        let table2 = d3.select('#dropdown_t2_' + i).property('value');
+        let attr2 = d3.select('#attrs_t2_' + i).property('value');
+        getAttrsHandler(i, '#attrs_t2_' + i.toString(), table2, attr2);
+      });
+    }
+  }
+
+  bindJoinCondition(joinConditionHanlder) {
+    let n = this.joinContainer.selectAll('div').size()
+    for (let i=0;i<n;i++) {
+      // add or update condition in the model
+      d3.select('#join_row_' + i).on('change', () => {
+        let table1 = d3.select('#dropdown_t1_' + i).property('value');
+        let table2 = d3.select('#dropdown_t2_' + i).property('value');
+        let attr1 = d3.select('#attrs_t1_' + i).property('value');
+        let attr2 = d3.select('#attrs_t2_' + i).property('value');
+        joinConditionHanlder(i, {"table1" : table1, "table2": table2, "attr1" : attr1, "attr2": attr2});
+      });
+    }
+  }
+
+  dispatchChangeEventToJoinCondition(idx) {
+    d3.select('#join_row_' + idx).dispatch('change');
+  }
+
+  //TODO: possible optimization?
+  bindJoinConditionChange(handler) {
+    let n = this.joinContainer.selectAll('div').size()
+    
+    for (let i=0;i<n;i++) {
+      d3.select('#dropdown_t1_' + i).on('change', () => {
+        handler(this.generateJoinConditionArray);
+      })
+      d3.select('#dropdown_t2_' + i).on('change', () => {
+        handler(this.generateJoinConditionArray);
+      })
+      d3.select('#attrs_t1_' + i).on('change', () => {
+        handler(this.generateJoinConditionArray);
+      })
+      d3.select('#attrs_t2_' + i).on('change', () => {
+        handler(this.generateJoinConditionArray);
+      })
+    }
+  }
+
+
+  // ALL DISPLAY METHODS
+
   displayError(errMsg) {
     this.errorField.html(`Operation failed with reason: ${errMsg}`);
   }
@@ -104,9 +201,8 @@ export class tableManagerView extends abc.View {
       tables.forEach((table) => {
         tableDropDown1.append('option').text(table).property('value', table);
         tableDropDown2.append('option').text(table).property('value', table);
-
-      })
-    })
+      });
+    });
 
     tables.forEach((table) => {
       this.tableListBox.append('option').text(table).property('value', table);
@@ -114,20 +210,20 @@ export class tableManagerView extends abc.View {
   }
 
   displayJoinConditions(joinConditions, tableAttrMapping) {
-    console.log("displaying join conditions triggered");
-    console.log(tableAttrMapping)
-    console.log("current join Conditions in model")
-    console.log(joinConditions);
-
-    this.joinContainer.selectAll('div').each( function(d, i) {
+    
+    this.joinContainer.selectAll('div').each(function(d, i) {
+      this.resetDropDown = function(elem) {
+        elem.html(null);
+        elem.append('option').text('').property('value','');
+      };
+      
       let tableDropDown1 = d3.select(this).select('#dropdown_t1_' + i)
       let tableDropDown2 = d3.select(this).select('#dropdown_t2_' + i) 
       let attrDropDown1 = d3.select(this).select('#attrs_t1_' + i)
       let attrDropDown2 = d3.select(this).select('#attrs_t2_' + i)
-      tableDropDown1.html(null);
-      tableDropDown2.html(null);
-      tableDropDown1.append('option').text('').property('value','');
-      tableDropDown2.append('option').text('').property('value','');
+      
+      this.resetDropDown(tableDropDown1);
+      this.resetDropDown(tableDropDown2);
       tableAttrMapping.forEach((attrs, table) => {
         tableDropDown1.append('option').text(table).property('value', table);
         tableDropDown2.append('option').text(table).property('value', table);
@@ -142,10 +238,9 @@ export class tableManagerView extends abc.View {
       tableDropDown1.property('value', selectedTable1);
       tableDropDown2.property('value', selectedTable2);
 
-      attrDropDown1.html(null);
-      attrDropDown2.html(null);
-      attrDropDown1.append('option').text('').property('value','');
-      attrDropDown2.append('option').text('').property('value','');
+      this.resetDropDown(attrDropDown1);
+      this.resetDropDown(attrDropDown2);
+
       (tableAttrMapping.get(selectedTable1) || []).forEach((attr) => {
         attrDropDown1.append('option').text(attr).property('value', attr);
       })
@@ -178,55 +273,18 @@ export class tableManagerView extends abc.View {
     });
     if (currentAttr) {
       selector.property('value', currentAttr);
+    } else {
+      selector.property('value', '');
     }
   }
 
-  bindAddTableButton(handler) {
-    this.addTable.on('click', () => {
-      let tableName = d3.select('#tableName').property('value');
-      let tableLocation = d3.select('#tableLocation').property('value');
-      handler(tableName, tableLocation);
-    });
-  }
+  // UTILS
 
-  bindShowSchemaAndSample(handler) {
-    this.showSample.on('click', () => {
-      let table = this.tableListBox.property('value');
-      handler(table);
-    });
-  }
-
-  bindAddJoinCondition(handler) {
-    this.addJoin.on('click', () => {
-      this.generateJoinInput(this.joinContainer.selectAll('div').size());
-      let joinConditions = []
-      this.joinContainer.selectAll('div').each(function(row, i) {
-        let table1 = d3.select(this).select('#dropdown_t1_' + i).property('value');
-        let table2 = d3.select(this).select('#dropdown_t2_' + i).property('value');
-        let attr1 = d3.select(this).select('#attrs_t1_' + i).property('value');
-        let attr2 = d3.select(this).select('#attrs_t2_' + i).property('value');
-        
-        joinConditions.push({'table1':table1, 'table2': table2, 'attr1': attr1, 'attr2': attr2});
-      })
-      handler(joinConditions)
-    })
-  }
-
-
-
-  bindGenerateGraph(handler) {
-    this.generateGraph.on('click', () => {
-      let joinConditions = []
-      this.joinContainer.selectAll('div').each(function(row, i) {
-        let table1 = d3.select(this).select('#dropdown_t1_' + i).property('value');
-        let table2 = d3.select(this).select('#dropdown_t2_' + i).property('value');
-        let attr1 = d3.select(this).select('#attrs_t1_' + i).property('value');
-        let attr2 = d3.select(this).select('#attrs_t2_' + i).property('value');
-        
-        joinConditions.push({'table1':table1, 'table2': table2, 'attr1': attr1, 'attr2': attr2});
-      })
-      handler(joinConditions);
-    })
+  generateJoinInputs(n) {
+    this.joinContainer.html(null);
+    for (let i=0;i<n;i++) {
+      this.generateJoinInput(i);
+    }
   }
 
   generateJoinInput(i) {
@@ -261,86 +319,12 @@ export class tableManagerView extends abc.View {
       div.append('br');
   }
 
-  //only supporting single key join
-  bindJoin(handler) {
-    // this.join.on('click', () => {
-      // let a1 = this.attrs1.property('value');
-      // let a2 = this.attrs2.property('value');
-      // let t1 = this.dropdown1.property('value');
-      // let t2 = this.dropdown2.property('value');
-      // handler(t1, a1, t2, a2);
-    // });
-  }
-
-  bindDeleteJoin(deleteJoinHandler) {
-    for (let i=0;i<n;i++) {
-
-      d3.select('#delete_join_' + i).on('click', () => {
-        deleteJoinHandler(i, '#delete_join_' + i.toString());
-      });
-    }
-  }
+  
 
   removeElement(id) {
     d3.select(id).remove();
   }
 
-  bindSelectAttrs(getAttrsHandler) {
-    let n = this.joinContainer.selectAll('div').size()
-    for (let i=0;i<n;i++) {
-
-
-      d3.select('#dropdown_t1_' + i).on('change', () => {
-        let table1 = d3.select('#dropdown_t1_' + i).property('value');
-        let attr1 = d3.select('#attrs_t1_' + i).property('value');
-        getAttrsHandler(i, '#attrs_t1_' + i.toString(), table1, attr1);
-      });
-      d3.select('#dropdown_t2_' + i).on('change', () => {
-        let table2 = d3.select('#dropdown_t2_' + i).property('value');
-        let attr2 = d3.select('#attrs_t2_' + i).property('value');
-        getAttrsHandler(i, '#attrs_t2_' + i.toString(), table2, attr2);
-      });
-    }
-  }
-
-  bindJoinCondition(joinConditionHanlder) {
-    let n = this.joinContainer.selectAll('div').size()
-    for (let i=0;i<n;i++) {
-      // add or update condition in the model
-      d3.select('#join_row_' + i).on('change', () => {
-        console.log("binding join row");
-        let table1 = d3.select('#dropdown_t1_' + i).property('value');
-        let table2 = d3.select('#dropdown_t2_' + i).property('value');
-        let attr1 = d3.select('#attrs_t1_' + i).property('value');
-        let attr2 = d3.select('#attrs_t2_' + i).property('value');
-        joinConditionHanlder(i, {"table1" : table1, "table2": table2, "attr1" : attr1, "attr2": attr2});
-      });
-    }
-  }
-
-  dispatchChangeEventToJoinCondition(idx) {
-    d3.select('#join_row_' + idx).dispatch('change');
-  }
-
-  //TODO: possible optimization?
-  bindJoinConditionChange(handler) {
-    let n = this.joinContainer.selectAll('div').size()
-    
-    for (let i=0;i<n;i++) {
-      d3.select('#dropdown_t1_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-      d3.select('#dropdown_t2_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-      d3.select('#attrs_t1_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-      d3.select('#attrs_t2_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-    }
-  }
   generateJoinConditionArray() {
     let joinConditions = []
     this.joinContainer.selectAll('div').each(function(row, i) {
