@@ -34,34 +34,14 @@ export class tableManagerController extends abc.Controller {
     this.tMView.bindGenerateGraph(this.generateGraph);
     this.tMView.bindDeleteJoin(this.deleteJoin);
     this.joinConditions = [];
-    // this.tMView.bindJoinConditionChange(this.refreshJoinConditions); 
 
     this.joinGraph = {
       "nodes": [],
       "links": []
     }
-      this.gView.displayGraph(this.joinGraph);
-
-  }
-
-  refreshJoinConditions = (data) => {
-    console.log(data)
-    for (let i=0;i<data.length;i++) {
-      this.joinConditions.push(new JoinCondition(data[i].table1, data[i].table2, data[i].attr1, data[i].attr2));
-      if (this.isValidJoinCondition(data[i])) {
-          this.joinGraph.nodes.add({"id": data[i].table1, "name": data[i].table1});
-          this.joinGraph.nodes.add({"id": data[i].table2, "name": data[i].table2});
-          this.joinGraph.links.add({"source": data[i].table1, "target": data[i].table2});
-      }
-    }
-    console.log(this.joinGraph)
-    this.gView.displayGraph(this.joinGraph);
-    this.tMView.bindSelectAttrs(this.getAttrs);
-
   }
 
   addJoinCondition = (data) => {
-
 
     this.joinConditions.push(new JoinCondition(data.table1, data.table2, data.attr1, data.attr2));
 
@@ -205,6 +185,7 @@ export class tableManagerController extends abc.Controller {
       "sample2": sample2,
     };
   };
+
   getSchemaAndSample = async (table) => {
     let schema1 = await this.model.getTableSchema(table);
     let sample1 = await this.model.getTableData(table, 10);

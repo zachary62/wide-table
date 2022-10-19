@@ -155,25 +155,6 @@ export class tableManagerView extends abc.View {
     d3.select('#join_row_' + idx).dispatch('change');
   }
 
-  //TODO: possible optimization?
-  bindJoinConditionChange(handler) {
-    let n = this.joinContainer.selectAll('div').size()
-    
-    for (let i=0;i<n;i++) {
-      d3.select('#dropdown_t1_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-      d3.select('#dropdown_t2_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-      d3.select('#attrs_t1_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-      d3.select('#attrs_t2_' + i).on('change', () => {
-        handler(this.generateJoinConditionArray);
-      })
-    }
-  }
 
 
   // ALL DISPLAY METHODS
@@ -185,7 +166,6 @@ export class tableManagerView extends abc.View {
   displaySuccess() {
     this.errorField.html('success');
   }
-
 
   displayTableSelections(tables) {
     this.tableListBox.html(null);
